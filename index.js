@@ -14,7 +14,7 @@ http.createServer((req, res) => {
 // --- BOT AYARLARI (BURAYI DÜZENLE) ---
 const SERVER_IP = 'bxfhard.aternos.me';      // Sunucu adresin (Zaten doğru girmişsin)
 const SERVER_PORT = 16317;                   // Port numaran (Zaten doğru girmişsin)
-const BOT_NAME = '';              // Botun oyundaki adı
+const BOT_NAME = 'Poweredby_celo58';              // Botun oyundaki adı
 
 // --- BOT FONKSİYONU ---
 function createBot() {
@@ -67,3 +67,4 @@ function createBot() {
 
 // Botu başlat
 createBot();
+
