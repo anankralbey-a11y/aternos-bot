@@ -2,19 +2,19 @@ const bedrock = require('bedrock-protocol');
 const http = require('http');
 
 // --- RENDER İÇİN WEB SUNUCU (Burası botun kapanmasını/uyumasını engeller) ---
-const port = process.env.PORT || 10000; // Render'ın verdiği portu kullanır
+const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write("Bot aktif ve Aternos sunucusunu bekliyor.");
+    res.write("Bot aktif ve Aternos sunucusunu bekliyor. Stabil versiyon.");
     res.end();
 }).listen(port, () => {
     console.log(`Web sunucusu ${port} portunda başlatıldı. Bot çalışmaya hazır.`);
 });
 
 // --- BOT AYARLARI (BURAYI DÜZENLE) ---
-const SERVER_IP = 'bxfhard.aternos.me'; // Aternos'taki sunucu adresin
-const SERVER_PORT = 16317;                   // Aternos'taki port numaran
-const BOT_NAME = 'AFK_BOT';              // Botun oyundaki adı
+const SERVER_IP = 'bxfhard.aternos.me';      // Sunucu adresin (Zaten doğru girmişsin)
+const SERVER_PORT = 16317;                   // Port numaran (Zaten doğru girmişsin)
+const BOT_NAME = '';              // Botun oyundaki adı
 
 // --- BOT FONKSİYONU ---
 function createBot() {
@@ -24,16 +24,29 @@ function createBot() {
         host: SERVER_IP,
         port: SERVER_PORT,
         username: BOT_NAME,
-        offline: true, // Korsan sunucu olduğu için 'true' kalacak
+        offline: true, 
         skipPing: true
     });
 
     client.on('join', () => {
         console.log('[BAŞARILI] Bot sunucuya katıldı!');
+        
+        // Anti-AFK döngüsü
         setInterval(() => {
-            client.queue('animate', { action_id: 1 }); // Anti-AFK
-            console.log("Anti-AFK hareketi yapıldı.");
-        }, 30000);
+            console.log("Anti-AFK hareketi tetikleniyor...");
+            try {
+                // --- DÜZELTME BURADA ---
+                // Sunucuya kimin animasyon yapacağını belirtiyoruz.
+                // client.runtimeEntityId, botun oyundaki kendi kimliğidir.
+                client.queue('animate', {
+                    action_id: 1, // El sallama animasyonu
+                    runtime_entity_id: client.runtimeEntityId 
+                });
+                console.log("Anti-AFK hareketi başarıyla gönderildi.");
+            } catch (e) {
+                console.error("Anti-AFK hareketi gönderilirken bir hata oluştu:", e);
+            }
+        }, 30000); // 30 saniyede bir
     });
 
     client.on('disconnect', (packet) => {
@@ -42,7 +55,12 @@ function createBot() {
     });
 
     client.on('error', (err) => {
-        console.log(`[HATA] ${err.message}. 15 saniye sonra tekrar denenecek...`);
+        // Bu hatanın tekrar etmemesi lazım ama garanti olsun diye loglayalım
+        if (err.message.includes('BigInt')) {
+            console.error('[KRİTİK HATA] Animate paketiyle ilgili sorun devam ediyor. Lütfen kodu kontrol edin.');
+        } else {
+            console.log(`[HATA] ${err.message}. 15 saniye sonra tekrar denenecek...`);
+        }
         setTimeout(createBot, 15000);
     });
 }
