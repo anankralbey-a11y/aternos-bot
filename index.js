@@ -33,7 +33,7 @@ function createBot() {
         // 2. Senin istediğin sürüm. 
         // Eğer otomatik algılama hata verirse bu satırı kullanır.
         // Aternos'ta yazan tam sayı neyse o olmalı.
-        version: '1.21.132.3' 
+        version: '1.21.130' 
     });
 
     // Kaynak paketi hatasını önleyen fonksiyon
@@ -92,3 +92,4 @@ function createBot() {
 }
 
 createBot();
+
