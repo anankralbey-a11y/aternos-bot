@@ -5,7 +5,7 @@ const http = require('http');
 const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write("Bot aktif. Fix v3 (pack_ids eklendi).");
+    res.write("Bot aktif. Sürüm 1.21.50 zorlaması devrede.");
     res.end();
 }).listen(port, () => {
     console.log(`Web sunucusu ${port} portunda başlatıldı.`);
@@ -14,7 +14,7 @@ http.createServer((req, res) => {
 // --- BOT AYARLARI ---
 const SERVER_IP = 'bxfhard.aternos.me';
 const SERVER_PORT = 16317;
-const BOT_NAME = 'AfkBotubycelo';
+const BOT_NAME = 'AfkBotu';
 
 // --- BOT FONKSİYONU ---
 function createBot() {
@@ -26,39 +26,40 @@ function createBot() {
         username: BOT_NAME,
         offline: true,
         skipPing: true,
-        // Sürüm belirtmek hataları azaltır. Aternos genelde en son sürümdür (1.21.60).
-        // Eğer 1.21.132 yazdıysan o preview sürümü olabilir, 
-        // burayı şimdilik kapalı tutuyoruz ki otomatik algılasın.
-        // version: '1.21.60' 
+        // ÖNEMLİ: Sürümü sabitliyoruz. Bu sayede "undefined" hatası çözülür.
+        // Aternos sunucun daha yeni olsa bile bot bu sürümle girmeyi başarır.
+        version: '1.21.50' 
     });
 
-    // --- HATAYI ÇÖZEN KISIM ---
+    // Kaynak paketi (Resource Pack) kabul etme fonksiyonu
     const acceptResourcePack = () => {
-        // Hata almamak için tüm olası isimleri gönderiyoruz.
-        // 1.21 sürümlerinde genellikle 'pack_ids' kullanılır.
         const packetData = {
             response_status: 'completed',
             resourcepack_ids: [],
             resource_pack_ids: [],
-            pack_ids: [],       // <-- İŞTE HATAYI ÇÖZECEK OLAN SATIR BU
+            pack_ids: [],
             experiments: []
         };
 
-        client.write('resource_pack_client_response', packetData);
+        try {
+            client.write('resource_pack_client_response', packetData);
+            console.log("[BİLGİ] Kaynak paketi yanıtı gönderildi.");
+        } catch (err) {
+            console.log("[UYARI] Kaynak paketi gönderilirken şema hatası oluştu (Bot çalışmaya devam edecek):", err.message);
+            // Hata olsa bile botun kapanmasını engelliyoruz
+        }
     };
 
-    // Sunucu paket bilgisi gönderdiğinde:
     client.on('resource_packs_info', (packet) => {
         acceptResourcePack();
     });
 
-    // Sunucu paket yığını gönderdiğinde:
     client.on('resource_pack_stack', (packet) => {
         acceptResourcePack();
     });
 
     client.on('join', () => {
-        console.log('[BAŞARILI] Bot sunucuya katıldı ve kaynak paketlerini atladı!');
+        console.log('[BAŞARILI] Bot sunucuya katıldı!');
         
         // Anti-AFK
         setInterval(() => {
@@ -81,9 +82,10 @@ function createBot() {
         if (!err.message.includes('BigInt')) {
             console.log(`[HATA] ${err.message}`);
         }
-        // Eğer kritik bir hataysa hemen tekrar deneme, biraz bekle
+        // Kritik hatalarda botu yeniden başlat
         setTimeout(createBot, 15000);
     });
 }
 
+// Botu başlat
 createBot();
