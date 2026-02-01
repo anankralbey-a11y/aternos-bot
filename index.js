@@ -12,8 +12,8 @@ http.createServer((req, res) => {
 });
 
 // --- BOT AYARLARI ---
-const SERVER_IP = 'bxfhard.aternos.me';
-const SERVER_PORT = 16317;
+const SERVER_IP = 'emerald.magmanode.com';
+const SERVER_PORT = 25589;
 const BOT_NAME = 'AfkBotu';
 
 // --- BOT FONKSİYONU ---
@@ -92,4 +92,5 @@ function createBot() {
 }
 
 createBot();
+
 
