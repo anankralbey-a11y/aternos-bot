@@ -1,11 +1,11 @@
 const bedrock = require('bedrock-protocol');
 const http = require('http');
 
-// --- RENDER İÇİN WEB SUNUCU ---
+// --- RENDER WEB SUNUCUSU ---
 const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write("Bot aktif. Modlu sunucu bypass devrede.");
+    res.write("Bot aktif. Fix v3 (pack_ids eklendi).");
     res.end();
 }).listen(port, () => {
     console.log(`Web sunucusu ${port} portunda başlatıldı.`);
@@ -25,33 +25,40 @@ function createBot() {
         port: SERVER_PORT,
         username: BOT_NAME,
         offline: true,
-        skipPing: true
-        // version: '1.21.60' // Gerekirse burayı açabilirsin ama şimdilik kapalı kalsın
+        skipPing: true,
+        // Sürüm belirtmek hataları azaltır. Aternos genelde en son sürümdür (1.21.60).
+        // Eğer 1.21.132 yazdıysan o preview sürümü olabilir, 
+        // burayı şimdilik kapalı tutuyoruz ki otomatik algılasın.
+        // version: '1.21.60' 
     });
 
-    // --- DÜZELTİLEN KISIM: KAYNAK PAKETİ BYPASS ---
-    // Hatayı önlemek için hem 'resourcepack_ids' hem 'resource_pack_ids' gönderiyoruz.
-    
+    // --- HATAYI ÇÖZEN KISIM ---
     const acceptResourcePack = () => {
-        client.write('resource_pack_client_response', {
+        // Hata almamak için tüm olası isimleri gönderiyoruz.
+        // 1.21 sürümlerinde genellikle 'pack_ids' kullanılır.
+        const packetData = {
             response_status: 'completed',
             resourcepack_ids: [],
-            resource_pack_ids: [], // <--- Bu satır hatayı çözer
-            experiments: []        // Bazı yeni sürümler bunu da isteyebilir
-        });
+            resource_pack_ids: [],
+            pack_ids: [],       // <-- İŞTE HATAYI ÇÖZECEK OLAN SATIR BU
+            experiments: []
+        };
+
+        client.write('resource_pack_client_response', packetData);
     };
 
+    // Sunucu paket bilgisi gönderdiğinde:
     client.on('resource_packs_info', (packet) => {
         acceptResourcePack();
     });
 
+    // Sunucu paket yığını gönderdiğinde:
     client.on('resource_pack_stack', (packet) => {
         acceptResourcePack();
     });
-    // ----------------------------------------------
 
     client.on('join', () => {
-        console.log('[BAŞARILI] Bot sunucuya katıldı!');
+        console.log('[BAŞARILI] Bot sunucuya katıldı ve kaynak paketlerini atladı!');
         
         // Anti-AFK
         setInterval(() => {
