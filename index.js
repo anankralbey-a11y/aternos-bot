@@ -5,7 +5,7 @@ const http = require('http');
 const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write("Bot aktif. Sürüm 1.21.50 zorlaması devrede.");
+    res.write("Bot aktif. Surum: Ozel (1.21.132.3) veya Otomatik.");
     res.end();
 }).listen(port, () => {
     console.log(`Web sunucusu ${port} portunda başlatıldı.`);
@@ -25,28 +25,31 @@ function createBot() {
         port: SERVER_PORT,
         username: BOT_NAME,
         offline: true,
-        skipPing: true,
-        // ÖNEMLİ: Sürümü sabitliyoruz. Bu sayede "undefined" hatası çözülür.
-        // Aternos sunucun daha yeni olsa bile bot bu sürümle girmeyi başarır.
-        version: '1.21.50' 
+        
+        // --- KRİTİK AYARLAR ---
+        // 1. skipPing: false yapıyoruz ki bot sunucuya sürümünü sorsun (Otomatik algılama).
+        skipPing: false, 
+
+        // 2. Senin istediğin sürüm. 
+        // Eğer otomatik algılama hata verirse bu satırı kullanır.
+        // Aternos'ta yazan tam sayı neyse o olmalı.
+        version: '1.21.132.3' 
     });
 
-    // Kaynak paketi (Resource Pack) kabul etme fonksiyonu
+    // Kaynak paketi hatasını önleyen fonksiyon
     const acceptResourcePack = () => {
         const packetData = {
             response_status: 'completed',
             resourcepack_ids: [],
             resource_pack_ids: [],
-            pack_ids: [],
+            pack_ids: [], 
             experiments: []
         };
 
         try {
             client.write('resource_pack_client_response', packetData);
-            console.log("[BİLGİ] Kaynak paketi yanıtı gönderildi.");
         } catch (err) {
-            console.log("[UYARI] Kaynak paketi gönderilirken şema hatası oluştu (Bot çalışmaya devam edecek):", err.message);
-            // Hata olsa bile botun kapanmasını engelliyoruz
+            // Sessiz kal
         }
     };
 
@@ -78,14 +81,14 @@ function createBot() {
     });
 
     client.on('error', (err) => {
-        // Hata mesajını daha temiz görelim
-        if (!err.message.includes('BigInt')) {
+        // Version not supported hatası alırsan buraya düşer
+        if (err.message.includes('not supported')) {
+            console.log(`[HATA] Yazdığın 1.21.132.3 sürümü kütüphanede yok! Lütfen kodu 1.21.60 yaparak dene.`);
+        } else if (!err.message.includes('BigInt')) {
             console.log(`[HATA] ${err.message}`);
         }
-        // Kritik hatalarda botu yeniden başlat
         setTimeout(createBot, 15000);
     });
 }
 
-// Botu başlat
 createBot();
